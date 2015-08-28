@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <style>
+      html{
+        background-color: #cccccc;
+      }
+      fieldset{
+        border: groove;
+        background-color: #ffffff;
+      }
+      legend{
+        margin: auto;
+      }
+      #link li{
+        list-style-type: none;
+        float: left;
+        width: 135px;
+        text-align: center;
+      }
+
+      #link a:hover {
+        color: blue;
+      }
+      h1, #content{
+        padding: 30px;
+        text-align: center;
+      }
+      input{
+        font-size: 30px;
+      }
+    </style>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+  <fieldset id="field_link">
+    <legend>Page</legend>
+    <ul id="link">
+      <li><a href="/">Back to Home Screen</a></li>
+      <li><a href="database.html">To database</a></li>
+      <li><a href="set_picture.html">Image Search</a></li>
+      <li><a href="../auto_encoder/autoencoder.html">Auto Encoder</a></li>
+      <li><a href="../RBM/RBM1.html">Restricted Boltzmann Machine</a></li>
+      <li><a href="../convo_net/convo1.html">Convolution neural network</a></li>
+    </ul>
+  </fieldset>
+  <h1>Image Search</h1>
+  <div id="content">
+  <script type="text/javascript" src="flickr_search.js"></script>
+  <form method="post">
+    <input type="text" name="query" id="query" placeholder="query">
+    <input type="number" id="pic_num" step="1" min="1" max="100" value="10">
+    <select id="size">
+      <option value="_s.jpg">small square(width:75px,height:75px)</option>
+      <option value="_m.jpg">middle(max 100px)</option>
+      <option value=".jpg">large(max 500px)</option>
+    </select>
+    <input type="button" value="see" onclick="send()">
+    <input type="reset" value="reset">
+    <input type="submit" value="download" onclick="download()"></br>
+    <div id="photos_here"></div>
+  </form>
+  </div>
+</body>
+</html>

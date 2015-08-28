@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        html{
+            background-color: #ccc;
+            height: 100%;
+            font-size: 14px;
+        }
+        body{
+            text-align: center;
+        }
+        fieldset{
+            border: groove;
+            background-color: #ffffff;
+        }
+        legend{
+            margin: auto;
+        }
+        #link li{
+            list-style-type: none;
+            float: left;
+            width: 135px;
+            text-align: center;
+        }
+
+        #link a:hover {
+            color: blue;
+        }
+        #contents{
+            top: 100%; left: 100%;
+            overflow: hidden;
+            /*width: 800px; height: 800px;
+            /*margin-top: 50px; margin-left: 100px;
+            /*border: 4px solid #000000;*/
+        }
+
+        #part1,#part2{
+            overflow: hidden;
+        }
+
+        #set_pictures{
+            float: left;
+            width: 40%;
+            background-color: lavender;
+            border-radius: 30px;
+
+        }
+
+        canvas{
+            border:1px solid #000000;
+            background-color: snow;
+
+        }
+
+        #canvas1{
+            float: right;
+            width: 40%;
+
+        }
+
+        #canvas2,#canvas3{
+            float: left;
+            width: 70%;
+            overflow: hidden;
+        }
+
+        #canvas2_1,#canvas3_1{
+            float: right;
+            width: 20%;
+            overflow: hidden;
+
+        }
+
+    </style>
+</head>
+<body>
+<fieldset id="field_link">
+    <legend>Page</legend>
+    <ul id="link">
+        <li><a href="/">Back to Home Screen</a></li>
+        <li><a href="../image_set/set_picture.html">Image Search</a></li>
+        <li><a href="../image_set/database.html">To database</a></li>
+        <li><a href="../auto_encoder/autoencoder.html">Auto Encoder</a></li>
+        <li><a href="../RBM/RBM1.html">Restricted Boltzmann Machine</a></li>
+        <li><a href="convo1.html">Convolution neural network</a></li>
+    </ul>
+</fieldset>
+<div id="header">
+    <h1>CONVOLUTION NEURAL NETWORK</h1>
+</div>
+<div id="contents">
+    <div id="part1">
+    <fieldset id="set_pictures"><legend><strong>parameters</strong></legend>
+        <select id="select1">
+            <option>data</option>
+        </select>
+        <select id="picture_type">
+            <option>regularized gray</option>
+            <option>gray</option>
+            <option>original</option>
+        </select></br>
+        <input type="button" name="save" value="SET PICTURES" onClick="set()"></li>
+    </fieldset>
+        <canvas id="canvas1" width="600" height="400"></canvas></br>
+    </div>
+    <label for="hi" accesskey="n">CONVO1：</label></br>
+    <label for="hi" accesskey="n">feature_num：</label>
+    <input type="number" id="feature_num" value="9" min ="1" max="9">
+    <label for="hi" accesskey="n">picture_select：</label>
+    <input type="number" id="picture_select" value="1" min ="1" max="5">
+    <label for="hi" accesskey="n">learning_rate：</label>
+    <input type="number" id="learning_rate" value="0.1" min ="0.1" max="0.5" step="0.1">
+    <label >ERROR：</label>
+    <label id="error"></label></br>
+    <input type="button" name="save" value="START" onClick="conv1()"></br>
+    <input type="button" name="save" value="stop" onClick="stop()">
+    <input type="button" name="save" value="restart" onClick="restart()"></br>
+
+    <div id="part2">
+        <canvas id="canvas2" width="400" height="400"></canvas></br>
+        <canvas id="canvas2_1" width="200" height="200"></canvas></br>
+    </div>
+    <label for="hi" accesskey="n">POOLING：</label></br>
+    <!--<input type="button" name="save" value="POOLING" onClick="pooling()"></br>-->
+    <canvas id="canvas3" width="400" height="400"></canvas></br>
+    <canvas id="canvas3_1" width="200" height="200"></canvas></br>
+
+    <label for="hi" accesskey="n">VALIDATION：</label>
+    <input type="button" name="save" value="VALIDATION" onClick="validation()"></br>
+    <input type="number" id="ft" value="9" min ="0" max="9"></br>
+    <label for="hi" >CLASS: </label>
+    <label for="hi" id="answer"></label>
+
+</div>
+<div id="footer">
+    <h3>COPYRIGHT HIROSHI 2015.6</h3>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script>
+
+
+    window.onload = function(){
+
+        var select = document.getElementById('select1');
+
+        $.getJSON("../image/log.json" , function(data) {
+            console.log(data);
+            for(var i=0;i<data.length;i++){
+                var option = document.createElement("option");
+                option.setAttribute('value',data[i].query);
+                option.setAttribute('id',data[i].number);
+                option.innerHTML = data[i].query;
+                select.appendChild(option);
+            }
+        });
+
+    }
+
+    function sigmoid(x){
+
+        return 1/(1+Math.exp(-x));
+
+    }
+
+    $('#select1').change(function(){
+        temp1 = $(this).find('option:selected').attr('id');
+        CHOSEN_QUERY = $(this).find('option:selected').attr('value');
+    });
+
+    function set(){
+        var canvas1 = document.getElementById('canvas1');
+        var context1 = canvas1.getContext('2d');
+        context1.clearRect(0,0,canvas1.width,canvas1.height);
+
+        W = 50;
+        H = 50;
+
+        srcs = new Array();
+
+        for(var i=1;i<=temp1;i++){
+            srcs.push(
+                    '../image/'+CHOSEN_QUERY+i+'.jpg')
+        }
+
+        MAX_IMAGE_NUM = srcs.length;
+
+        var gray_array = new Array(W);
+
+        for (var i = 0; i < gray_array.length; i++) {
+            gray_array[i] = new Array(H);
+        }
+
+        sd_image = new Array(MAX_IMAGE_NUM);
+
+
+        for (var i = 0; i < sd_image.length; i++) {
+            sd_image[i] = new Array(gray_array.length);
+
+
+            for (var j = 0; j < sd_image[0].length; j++) {
+
+                sd_image[i][j] = new Array(gray_array[0].length);
+
+            }
+        }
+
+        var images = [];
+        for (var i in srcs) {
+            images[i] = new Image();
+            images[i].crossOrigin="Anonymous";
+            images[i].src = srcs[i];
+        }
+        var p = 0;
+        var loadedCount = 1;
+        for (var i1 in images) {
+            images[i1].addEventListener('load', function () {
+                //images[i1].onload = function() {
+                if (loadedCount == images.length) {
+                    var x = 0;
+                    for (var j1 in images) {
+                        var column = Math.floor((x)/canvas1.width);
+                        console.log("c",column*H,x%canvas1.width);
+                        context1.drawImage(images[j1], x%canvas1.width, column*H, W, H);
+                        var gotten_image = context1.getImageData(x%canvas1.width, column*H, W, H);
+                        var image_data = gotten_image.data;
+                        var sum = 0;
+                        for (var j = 0; j < gotten_image.width; ++j) {
+                            for (var i = 0; i < gotten_image.height; ++i) {
+
+                                var gray = (image_data[j * gotten_image.width * 4 + i * 4] +
+                                        image_data[j * gotten_image.width * 4 + i * 4 + 1] +
+                                        image_data[j * gotten_image.width * 4 + i * 4 + 2]) / 3;
+                                var saturation = 0;
+                                saturation = Math.pow(image_data[j * gotten_image.width * 4 + i * 4], 2) +
+                                Math.pow(image_data[j * gotten_image.width * 4 + i * 4], 2) +
+                                Math.pow(image_data[j * gotten_image.width * 4 + i * 4], 2);
+
+                                saturation = Math.sqrt(saturation) / 255;
+
+                                image_data[j * gotten_image.width * 4 + i * 4] = gray;
+                                image_data[j * gotten_image.width * 4 + i * 4 + 1] = gray;
+                                image_data[j * gotten_image.width * 4 + i * 4 + 2] = gray;
+
+                                gray_array[j][i] = gray / 255;
+                                sum += gray_array[j][i];
+
+                                image_data[j * gotten_image.width * 4 + i * 4 + 3] = 255;
+
+                            }
+                        }
+                        if(parseInt(document.getElementById('picture_type').selectedIndex) == 1) {
+                            context1.putImageData(gotten_image, x%canvas1.width,column*H );
+                        }
+
+                        var average = sum / (gray_array.length * gray_array[0].length);
+
+                        console.log("average", average);
+
+                        var stock = 0;
+                        for (var i = 0; i < gray_array.length; i++) for (var j = 0; j < gray_array[i].length; j++) {
+
+                            stock += (gray_array[i][j] - average) * (gray_array[i][j] - average);
+
+                        }
+
+                        var sd = Math.sqrt(stock / (sd_image[0].length * sd_image[0][0].length));
+
+                        console.log("sd", sd);
+
+                        for (var i = 0; i < gray_array.length; i++) for (var j = 0; j < gray_array[i].length; j++) {
+                            sd_image[p][i][j] = sigmoid((gray_array[i][j] - average) / sd);
+                        }
+                        console.log(p, sd_image[p][0][0]);
+
+                        if(parseInt(document.getElementById('picture_type').selectedIndex) == 0) {
+                            for (var j = 0; j < W; j++) for (var i = 0; i < H; i++) {
+
+                                context1.fillStyle = 'rgba(' + Math.ceil(sd_image[p][j][i] * 255) + ',' +
+                                Math.ceil(sd_image[p][j][i] * 255) + ',' + Math.ceil(sd_image[p][j][i] * 255) + ',' + 1.0 + ')';
+                                context1.fillRect((i) + x%canvas1.width, j+column*H, 1, 1);
+
+                            }
+                        }
+                        p += 1;
+                        x += W;
+                    }
+                }
+                loadedCount++;
+                console.log(loadedCount);
+            }, false);
+        }
+
+        init_setting();
+    };
+
+</script>
+<script src = "convo1_1.js"></script>
+</body>
+</html>

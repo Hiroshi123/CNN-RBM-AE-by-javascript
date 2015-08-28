@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <style>
+      html {
+        background-color: #ccc;
+        height: 100%;
+        font-size: 14px;
+      }
+      body{
+        text-align: center;
+      }
+      fieldset{
+        border: groove;
+        background-color: #ffffff;
+      }
+      legend{
+        margin: auto;
+      }
+      #link li{
+        list-style-type: none;
+        float: left;
+        width: 135px;
+        text-align: center;
+      }
+
+      #link a:hover {
+        color: blue;
+      }
+      div.photobox img{
+        width: 100px;
+        height: 100px;
+        border: gray 3px solid;
+      }
+      div.controlbox {
+        text-align: center;
+        margin: 0.3em 0px 1em 0px;
+      }
+      canvas{
+        border:1px solid #000000;
+        background-color: snow;
+        padding: 10px;
+        margin: auto;
+      }
+    </style>
+    <meta charset="UTF-8">
+    <title></title>
+  </head>
+  <body>
+  <fieldset id="field_link">
+    <legend>Page</legend>
+    <ul id="link">
+      <li><a href="/">Back to Home Screen</a></li>
+      <li><a href="autoencoder.html">Auto Encoder</a></li>
+      <li><a href="../RBM/RBM1.html">Restricted Boltzmann Machine</a></li>
+      <li><a href="../convo_net/convo1.html">Convolution neural network</a></li>
+      <li><a href="../image_set/database.html">To database</a></li>
+      <li><a href="../image_set/set_picture.html">Image Search</a></li>
+    </ul>
+  </fieldset>
+    <h1>Auto Encoder</h1>
+    <select id="select1">
+      <option>data</option>
+    </select>
+    <select id="picture_type">
+      <option>regularized gray</option>
+      <option>gray</option>
+      <option>original</option>
+    </select>
+    <input type="button" name="save" size = 5 value="SET" onClick="set()"></br>
+    <canvas id = "canvas1" width="600" height ="50" ></canvas></br>
+    <div class="controlbox">
+      <input type="button" value="- start -" onclick="startshow();">
+      <input type="button" value="- stop -" onclick="stopshow();">
+    </div>
+    <div class="photobox">
+      <img src="" id="slideshow" alt="SLIDE SHOW">
+    </div>
+    <select id="LAYER NUMBER" onchange="layer_number()">
+      <option value="">LAYER NUMBER</option>
+      <option value="3">3</option>
+      <option value="5">5</option>
+      <option value="7">7</option>
+    </select>
+    <input type="button" size = 5 value="START" onClick="autoencoder()"></br>
+
+    <div id="aa"></div>
+    <label id="error"></label></br>
+    <label for="hi" accesskey="n">"LEARNING RATE"：</label>
+    <input type="number" id="RATE" step = 5 min = 0.1 max="1.0" value="0.1"></br>
+    <label for="hi" accesskey="n">"MAX ITERATION"：</label>
+    <input type="number" id="MAX_ITE" step = 1 min="1" max="30" value="10"></br>
+    <select id="bb">
+      <option value="">select</option>
+    </select>
+    <input type="button" name="save" value="CHECK HIDDEN NODE" onClick="see_hidden_node()"></br>
+
+    <input type="button" name="save" value="SEE WEIGHT" onClick="see_weight()">
+    <input type="button" name="save" value="BACK TO ORIGINAL IMAGE" onClick="see_original_image()"></br>
+    <canvas id = "mycanvas" width="600" height ="600" ></canvas>
+    <script src = "autoencoder.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+    <script>
+
+      var inttime = 1000;
+
+      window.onload = function(){
+
+        var select = document.getElementById('select1');
+
+        $.getJSON("../image/log.json" , function(data) {
+          console.log(data);
+          for(var i=0;i<data.length;i++){
+            var option = document.createElement("option");
+            option.setAttribute('value',data[i].query);
+            option.setAttribute('id',data[i].number);
+            option.innerHTML = data[i].query;
+            select.appendChild(option);
+          }
+        });
+
+
+        var canvas1 = document.getElementById('canvas1');
+        var context1 = canvas1.getContext('2d');
+        context1.font= 'bold 40px Century Gothic';
+        context1.strokeText("IMAGE LIST",canvas1.width*0.5-100,canvas1.height*0.5+15);
+
+
+        var canvas2 = document.getElementById('mycanvas');
+        var context2 = canvas2.getContext('2d');
+        context2.font= 'bold 40px Century Gothic';
+        context2.strokeText("RESULTS",canvas2.width*0.5-80,canvas2.height*0.5);
+      }
+
+      function showimage(num) {
+        imagename = "../image/"+CHOSEN_QUERY + num + ".jpg";
+        document.getElementById('slideshow').src = imagename;
+        var canvas1 = document.getElementById('canvas1');
+        var context1 = canvas1.getContext('2d');
+        var column = Math.floor((num-1)*W/canvas1.width);
+        var row = (num-1)*W%canvas1.width;
+
+        selected_picture = num-1;
+
+        context1.lineWidth = 6;
+        context1.strokeStyle = '#CCCCCC';
+        context1.strokeRect(this.pre_row,this.pre_column*H,W,H);
+        context1.lineWidth = 5;
+        context1.strokeStyle = '#FF0000';
+        context1.strokeRect(row,column*H,W,H);
+
+        this.pre_column = column;
+
+        this.pre_row = row;
+
+      }
+
+
+      var imgcount=1;
+      function slideimage() {
+        if( imgcount >  MAX_IMAGE_NUM ) {
+          imgcount = 1;
+        }
+        showimage( imgcount );
+        imgcount++;
+      }
+
+      var slideid;
+      function startshow() {
+        stopshow();
+        slideid = setInterval("slideimage()",inttime);
+
+      }
+
+      function stopshow() {
+        clearInterval(slideid);
+      }
+
+
+      function sigmoid(x) {
+
+        return 1 / (1 + Math.exp(-x));
+
+      }
+
+      $('#select1').change(function(){
+        temp1 = $(this).find('option:selected').attr('id');
+        CHOSEN_QUERY = $(this).find('option:selected').attr('value');
+ 
+      });
+
+      function set(){
+        var canvas1 = document.getElementById('canvas1');
+        var context1 = canvas1.getContext('2d');
+        context1.clearRect(0,0,canvas1.width,canvas1.height);
+
+        W = 50;
+        H = 50;
+
+        srcs = new Array();
+
+        for(var i=1;i<=temp1;i++){
+          srcs.push(
+          '../image/'+CHOSEN_QUERY+i+'.jpg')
+        }
+
+        MAX_IMAGE_NUM = srcs.length;
+
+        var gray_array = new Array(W);
+
+        for (var i = 0; i < gray_array.length; i++) {
+          gray_array[i] = new Array(H);
+        }
+
+        sd_image = new Array(MAX_IMAGE_NUM);
+
+
+        for (var i = 0; i < sd_image.length; i++) {
+          sd_image[i] = new Array(gray_array.length);
+
+
+          for (var j = 0; j < sd_image[0].length; j++) {
+
+            sd_image[i][j] = new Array(gray_array[0].length);
+
+          }
+        }
+
+        var images = [];
+        for (var i in srcs) {
+          images[i] = new Image();
+          images[i].crossOrigin="Anonymous";
+          images[i].src = srcs[i];
+        }
+        var p = 0;
+        var loadedCount = 1;
+        for (var i1 in images) {
+          images[i1].addEventListener('load', function () {
+            //images[i1].onload = function() {
+              if (loadedCount == images.length) {
+                var x = 0;
+                for (var j1 in images) {
+                  var column = Math.floor((x)/canvas1.width);
+                  console.log("c",column*H,x%canvas1.width);
+                  context1.drawImage(images[j1], x%canvas1.width, column*H, W, H);
+                  var gotten_image = context1.getImageData(x%canvas1.width, column*H, W, H);
+                  var image_data = gotten_image.data;
+                  var sum = 0;
+                  for (var j = 0; j < gotten_image.width; ++j) {
+                    for (var i = 0; i < gotten_image.height; ++i) {
+
+                      var gray = (image_data[j * gotten_image.width * 4 + i * 4] +
+                      image_data[j * gotten_image.width * 4 + i * 4 + 1] +
+                      image_data[j * gotten_image.width * 4 + i * 4 + 2]) / 3;
+                      var saturation = 0;
+                      saturation = Math.pow(image_data[j * gotten_image.width * 4 + i * 4], 2) +
+                      Math.pow(image_data[j * gotten_image.width * 4 + i * 4], 2) +
+                      Math.pow(image_data[j * gotten_image.width * 4 + i * 4], 2);
+
+                      saturation = Math.sqrt(saturation) / 255;
+
+                      image_data[j * gotten_image.width * 4 + i * 4] = gray;
+                      image_data[j * gotten_image.width * 4 + i * 4 + 1] = gray;
+                      image_data[j * gotten_image.width * 4 + i * 4 + 2] = gray;
+
+                      gray_array[j][i] = gray / 255;
+                      sum += gray_array[j][i];
+
+                      image_data[j * gotten_image.width * 4 + i * 4 + 3] = 255;
+
+                    }
+                  }
+                  if(parseInt(document.getElementById('picture_type').selectedIndex) == 1) {
+                    context1.putImageData(gotten_image, x%canvas1.width,column*H );
+                  }
+
+                  var average = sum / (gray_array.length * gray_array[0].length);
+
+                  console.log("average", average);
+
+                  var stock = 0;
+                  for (var i = 0; i < gray_array.length; i++) for (var j = 0; j < gray_array[i].length; j++) {
+
+                    stock += (gray_array[i][j] - average) * (gray_array[i][j] - average);
+
+                  }
+
+                  var sd = Math.sqrt(stock / (sd_image[0].length * sd_image[0][0].length));
+
+                  console.log("sd", sd);
+
+                  for (var i = 0; i < gray_array.length; i++) for (var j = 0; j < gray_array[i].length; j++) {
+                    sd_image[p][i][j] = sigmoid((gray_array[i][j] - average) / sd);
+                  }
+                  console.log(p, sd_image[p][0][0]);
+
+                  if(parseInt(document.getElementById('picture_type').selectedIndex) == 0) {
+                    for (var j = 0; j < W; j++) for (var i = 0; i < H; i++) {
+
+                      context1.fillStyle = 'rgba(' + Math.ceil(sd_image[p][j][i] * 255) + ',' +
+                      Math.ceil(sd_image[p][j][i] * 255) + ',' + Math.ceil(sd_image[p][j][i] * 255) + ',' + 1.0 + ')';
+                      context1.fillRect((i) + x%canvas1.width, j+column*H, 1, 1);
+
+                    }
+                  }
+                  p += 1;
+                  x += W;
+                }
+              }
+              loadedCount++;
+              console.log(loadedCount);
+            }, false);
+          }
+
+        };
+
+      </script>
+    </body>
+  </html>

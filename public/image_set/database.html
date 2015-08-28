@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <style>
+    html{
+      background-color: #cccccc;
+    }
+    body{
+    }
+    fieldset{
+      border: groove;
+      background-color: #ffffff;
+    }
+    legend{
+      margin: auto;
+    }
+    #link li{
+      list-style-type: none;
+      float: left;
+      width: 135px;
+      text-align: center;
+    }
+    #link a:hover {
+      color: blue;
+    }
+    #content, h1{
+      padding: 30px;
+      text-align: center;
+    }
+    #delete{
+      float: right;
+      width: auto;
+      color: red;
+      background-color: #000000;
+    }
+    #delete:hover{
+      color:#ffffff;
+    }
+  </style>
+<meta charset="UTF-8" />
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script>
+$(function() {
+  $.getJSON("../image/log.json" , function(data) {
+    var
+      ulObj = document.getElementById("demo"),
+      len = data.length,
+      imgObject = new Array();
+      picture = document.getElementById("picture"),
+      tagnum = 0;
+
+      for(var i = 0; i < len; i++) {
+        var p = document.createElement("p");
+        var tagname = document.createElement("a");
+        tagname.setAttribute('name',data[i].query);
+        tagname.innerHTML = data[i].query;
+        p.appendChild(tagname);
+        picture.appendChild(p);
+        var list = document.createElement("li");
+        var list_element = document.createElement("a");
+        var temp = "#"+data[i].query;
+        list_element.setAttribute('href',temp);
+        list_element.innerHTML = data[i].query+":"+data[i].number;
+        list.appendChild(list_element);
+        ulObj.appendChild(list);
+        console.log(data[i].query,data[i]);
+
+
+        for(var j=0;j<parseInt(data[i].number);j++){
+          var jj=j+1;
+          imgObject[tagnum] = document.createElement("img");
+          imgObject[tagnum].src="../image/"+data[i].query+jj+".jpg";
+          picture.appendChild(imgObject[tagnum]);
+          tagnum+=1;
+        }
+        var br = document.createElement("hr");
+        picture.appendChild(br);
+      }
+  });
+});
+function checkSubmit(){
+  if(window.confirm('Do you really delete?')){
+    return true;
+  }
+  else{window.alert('cancel');
+    return false;
+  }
+}
+
+</script>
+</head>
+<body>
+<fieldset id="field_link">
+  <legend>Page</legend>
+  <ul id="link">
+    <li><a href="/">Back to Home Screen</a></li>
+    <li><a href="set_picture.html">Image Search</a></li>
+    <li><a href="database.html">To database</a></li>
+    <li><a href="../auto_encoder/autoencoder.html">Auto Encoder</a></li>
+    <li><a href="../RBM/RBM1.html">Restricted Boltzmann Machine</a></li>
+    <li><a href="../convo_net/convo1.html">Convolution neural network</a></li>
+  </ul>
+</fieldset>
+
+  <h1>Database</h1><hr>
+<a href="#bottom">Jump to bottom</a>
+  <form method="post" onSubmit="return checkSubmit()">
+    <input id="delete" type="submit" value="delete">
+  </form>
+  <ul id="demo"></ul>
+<div id="content">
+  <div id="picture"></div>
+  <a name="bottom"></a>
+</div>
+
+</body>
+</html>

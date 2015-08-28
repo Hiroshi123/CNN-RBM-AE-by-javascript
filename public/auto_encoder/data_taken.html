@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+<script>
+$(function() {
+  $.getJSON("../image/log.json" , function(data) {
+    var
+      ulObj = $("#demo"),
+      len = data.length,
+      imgObject = new Array();
+      picture = document.getElementById("picture"),
+      tagnum = 0;
+
+      for(var i = 0; i < len; i++) {
+      //imgObject[i] = new Image();
+      ulObj.append($("<li>").attr({"query":data[i].number}).text(data[i].query+":"+data[i].number));
+      console.log(data[i].query,data[i]);
+
+      for(var j=0;j<parseInt(data[i].number);j++){
+        var jj=j+1;
+        var temp = data[i].query+jj;
+        imgObject[tagnum] = document.createElement("img");
+        imgObject[tagnum].src="../image/"+data[i].query+jj+".jpg"; 
+        picture.appendChild(imgObject[tagnum]);
+        tagnum+=1;
+      }
+      var br = document.createElement("p");
+      picture.appendChild(br);
+    }
+    
+  });
+});
+</script>
+</head>
+<body>
+  <ul id="demo"></ul>
+  <div id="picture"></div>
+</body>
+</html>
+
