@@ -1,7 +1,11 @@
 {
-  "name": "deep_learning",
-  "version": "0.0.0",
-  "description": "",
+    "name": "deep_learning",
+    "version": "0.0.0",
+    "description": "",
+    "engines":{
+	"node": "6.2.1",
+	"npm":  "3.9.3",
+    },
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
