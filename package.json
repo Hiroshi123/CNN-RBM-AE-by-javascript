@@ -1,6 +1,6 @@
 {
-  "name": "src",
-  "version": "1.0.0",
+  "name": "deep_learning",
+  "version": "6.2.1",
   "description": "",
   "main": "server.js",
   "scripts": {
