@@ -4,7 +4,7 @@
     "description": "",
     "engines":{
 	"node": "6.2.1",
-	"npm":  "3.9.3",
+	"npm":  "3.9.3"
     },
   "main": "server.js",
   "scripts": {
