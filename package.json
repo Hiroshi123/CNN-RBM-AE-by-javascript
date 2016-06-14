@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/Hiroshi123/CNN-RBM-AE-by-javascript/issues"
   },
-  "homepage": "https://github.com/Hiroshi123/CNN-RBM-AE-by-javascript"
+  "homepage": "https://github.com/Hiroshi123/CNN-RBM-AE-by-javascript",
+  "devDependencies": {
+    "express": "^4.13.4"
+  }
 }
